@@ -1,7 +1,5 @@
 /*
- * Licensed Materials - Property of IBM
- * 
- * (c) Copyright IBM Corp. 2020,2021.
+ * Copyright contributors to the Galasa project
  */
 package dev.galasa.zosbatch.rseapi.manager.internal;
 
@@ -237,7 +235,7 @@ public class RseapiZosBatchJobImpl implements IZosBatchJob {
     
     @Override
     public String getRetcode() {
-    	if (this.retcode == null) {
+    	if (this.retcode == null || this.retcode.equals(StringUtils.repeat(QUERY, 4))) {
         	try {
     			updateJobStatus();
     		} catch (ZosBatchException e) {
@@ -336,7 +334,7 @@ public class RseapiZosBatchJobImpl implements IZosBatchJob {
 
     @Override
     public void saveOutputToResultsArchive(String rasPath) throws ZosBatchException {
-        if (jobOutput() == null) {
+        if (jobOutput().isEmpty()) {
             retrieveOutput();
         }
         Path artifactPath = this.zosBatchManager.getArtifactsRoot().resolve(rasPath);
@@ -503,7 +501,7 @@ public class RseapiZosBatchJobImpl implements IZosBatchJob {
             throw new ZosBatchException(e);
         }
 
-        if (response.getStatusCode() == HttpStatus.SC_OK || response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+        if (response.getStatusCode() == HttpStatus.SC_OK || response.getStatusCode() == HttpStatus.SC_NOT_FOUND || response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
             this.status = null;
             if (purge) {
                 this.jobPurged = true; 
@@ -539,9 +537,10 @@ public class RseapiZosBatchJobImpl implements IZosBatchJob {
         return this.jobPurged;
     }
 
-    protected IZosBatchJobOutput jobOutput() {        
+    protected IZosBatchJobOutput jobOutput() throws ZosBatchException {        
         if (this.jobOutput == null) {
         	this.jobOutput = this.zosBatchManager.getZosManager().newZosBatchJobOutput(this, this.jobname.getName(), this.jobid);
+        	retrieveOutput();
         }
         return this.jobOutput;
     }
@@ -590,6 +589,7 @@ public class RseapiZosBatchJobImpl implements IZosBatchJob {
         		logger.trace("JOBID=" + this.jobid + " JOBNAME=" + this.jobname.getName() + " NOT FOUND");
                 this.jobNotFound = true;
                 this.status = JobStatus.NOTFOUND;
+                this.jobComplete = true;
             }
             setStatus(this.statusString);
             String retcodeProperty = jsonNull(responseBody, PROP_RETCODE);

@@ -1,7 +1,5 @@
 /*
- * Licensed Materials - Property of IBM
- * 
- * (c) Copyright IBM Corp. 2020,2021.
+ * Copyright contributors to the Galasa project
  */
 package dev.galasa.zosbatch.rseapi.manager.internal;
 
@@ -504,6 +502,11 @@ public class TestRseapiZosBatchJobImpl {
         zosBatchJobSpy.cancel();
         Assert.assertEquals("isComplete() should return the true", true, zosBatchJobSpy.isComplete());
         
+        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
+        Whitebox.setInternalState(zosBatchJobSpy, "jobComplete", false);
+        zosBatchJobSpy.cancel();
+        Assert.assertEquals("isComplete() should return the true", true, zosBatchJobSpy.isComplete());
+        
     	Whitebox.setInternalState(zosBatchJobSpy, "jobComplete", true);
         zosBatchJobSpy.cancel();
         Assert.assertEquals("isComplete() should return the true", true, zosBatchJobSpy.isComplete());
@@ -523,9 +526,9 @@ public class TestRseapiZosBatchJobImpl {
         Mockito.when(rseapiApiProcessorMock.sendRequest(Mockito.eq(RseapiRequestType.PUT_JSON), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean())).thenReturn(rseapiResponseMockStatus);
 
         Mockito.when(rseapiResponseMockStatus.getJsonContent()).thenReturn(getJsonObject());
-        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
-        Mockito.when(rseapiResponseMockStatus.getStatusLine()).thenReturn("NOT_FOUND");
-        String expectedMessage = "Error Cancel job, HTTP Status Code 404 : NOT_FOUND";
+        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_FORBIDDEN);
+        Mockito.when(rseapiResponseMockStatus.getStatusLine()).thenReturn("SC_FORBIDDEN");
+        String expectedMessage = "Error Cancel job, HTTP Status Code 403 : SC_FORBIDDEN";
         ZosBatchException expectedException = Assert.assertThrows("expected exception should be thrown", ZosBatchException.class, ()->{
         	zosBatchJobSpy.cancel();
         });
@@ -537,11 +540,11 @@ public class TestRseapiZosBatchJobImpl {
         Mockito.when(rseapiApiProcessorMock.sendRequest(Mockito.eq(RseapiRequestType.DELETE), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean())).thenReturn(rseapiResponseMockStatus);
 
         Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_OK);
-
         Assert.assertEquals("isPurged() should return the false", false, zosBatchJobSpy.isPurged());
         zosBatchJobSpy.purge();
         Assert.assertEquals("isPurged() should return the true", true, zosBatchJobSpy.isPurged());
         
+        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
         zosBatchJobSpy.purge();
     }
     
@@ -582,9 +585,9 @@ public class TestRseapiZosBatchJobImpl {
         Mockito.when(rseapiApiProcessorMock.sendRequest(Mockito.eq(RseapiRequestType.DELETE), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean())).thenReturn(rseapiResponseMockStatus);
 
         Mockito.when(rseapiResponseMockStatus.getJsonContent()).thenReturn(getJsonObject());
-        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_NOT_FOUND);
-        Mockito.when(rseapiResponseMockStatus.getStatusLine()).thenReturn("NOT_FOUND");
-        String expectedMessage = "Error Purge job, HTTP Status Code 404 : NOT_FOUND";
+        Mockito.when(rseapiResponseMockStatus.getStatusCode()).thenReturn(HttpStatus.SC_FORBIDDEN);
+        Mockito.when(rseapiResponseMockStatus.getStatusLine()).thenReturn("SC_FORBIDDEN");
+        String expectedMessage = "Error Purge job, HTTP Status Code 403 : SC_FORBIDDEN";
         ZosBatchException expectedException = Assert.assertThrows("expected exception should be thrown", ZosBatchException.class, ()->{
         	zosBatchJobSpy.purge();
         });
@@ -616,7 +619,13 @@ public class TestRseapiZosBatchJobImpl {
         Assert.assertEquals("saveOutputToTestResultsArchive() should log expected message", expectedMessage, logMessage);
 
         Whitebox.setInternalState(zosBatchJobSpy, "jobComplete", true);
-    	Mockito.doReturn(null, zosBatchJobOutputMock).when(zosBatchJobSpy).jobOutput();
+    	Mockito.doReturn(zosBatchJobOutputMock).when(zosBatchJobSpy).retrieveOutput();
+        Mockito.doReturn(FIXED_STEPNAME).when(zosBatchJobOutputSpoolFileMock).getStepname();
+        Mockito.doReturn(FIXED_PROCSTEP).when(zosBatchJobOutputSpoolFileMock).getProcstep();
+        Mockito.doReturn(true, false).when(zosBatchJobOutputSpoolFileIteratorMock).hasNext();
+
+        Whitebox.setInternalState(zosBatchJobSpy, "jobComplete", true);
+    	Mockito.doReturn(true).when(zosBatchJobOutputMock).isEmpty();
     	Mockito.doReturn(zosBatchJobOutputMock).when(zosBatchJobSpy).retrieveOutput();
         Mockito.doReturn(FIXED_STEPNAME).when(zosBatchJobOutputSpoolFileMock).getStepname();
         Mockito.doReturn(FIXED_PROCSTEP).when(zosBatchJobOutputSpoolFileMock).getProcstep();

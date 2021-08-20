@@ -34,9 +34,9 @@ public class ZosConnectInstallDir extends CpsProperties {
     public static String get(IZosImage image) throws ZosManagerException {
         String imageId = image.getImageID();
         try {
-            return getStringNulled(ZosPropertiesSingleton.cps(), "image." + imageId, "zosconnect.install.dir");
+            return getStringNulled(ZosPropertiesSingleton.cps(), "image", "zosconnect.install.dir", imageId);
         } catch (ConfigurationPropertyStoreException e) {
-            throw new ZosManagerException("Problem asking the CPS for the zOS Connect Install Directory for image "  + imageId, e);
+            throw new ZosManagerException("Problem asking the CPS for the zOS Connect Install Directory for image " + imageId, e);
         }
     }
 

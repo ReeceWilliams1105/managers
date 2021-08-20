@@ -75,9 +75,9 @@ public class TestZosConnectInstallDir {
         PowerMockito.spy(CpsProperties.class);
         
         if (!exception) {
-            PowerMockito.doReturn(value).when(CpsProperties.class, "getStringNulled", Mockito.any(), Mockito.anyString(), Mockito.anyString());
+            PowerMockito.doReturn(value).when(CpsProperties.class, "getStringNulled", Mockito.any(), Mockito.any(), Mockito.anyString(), Mockito.anyString());
         } else {
-            PowerMockito.doThrow(new ConfigurationPropertyStoreException()).when(CpsProperties.class, "getStringNulled", Mockito.any(), Mockito.anyString(), Mockito.anyString());
+            PowerMockito.doThrow(new ConfigurationPropertyStoreException()).when(CpsProperties.class, "getStringNulled", Mockito.any(), Mockito.any(), Mockito.anyString(), Mockito.anyString());
         }
         
         return ZosConnectInstallDir.get(arg);

@@ -1,7 +1,5 @@
 /*
- * Licensed Materials - Property of IBM
- * 
- * (c) Copyright IBM Corp. 2021.
+ * Copyright contributors to the Galasa project
  */
 package dev.galasa.cicsts.cicsresource;
 
@@ -12,6 +10,13 @@ import dev.galasa.zosbatch.IZosBatchJobOutputSpoolFile;
 import dev.galasa.zosfile.IZosUNIXFile;
 
 public interface IJvmserverLog {
+	
+	/**
+	 * Returns the name of the specified log file or DDNAME
+	 * @return the file or DDNAME name
+	 * @throws CicsJvmserverResourceException 
+	 */
+	public String getName() throws CicsJvmserverResourceException;
 	
 	/**
 	 * Is this JVM server log a {@link IZosUNIXFile}
